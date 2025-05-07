@@ -43,9 +43,8 @@ def calculate_potential_on_grid(y_coords, z_coords):
     # 4. 计算电势微元 dV = C / R
     dV = C / R
 
-    # 5. 对 phi 进行积分 (例如使用 np.trapz)
-    #    注意指定积分轴和积分步长 dx (如果 trapz 需要)
-    V = np.trapz(dV, phi, axis=2)
+    # 5. 对 phi 进行积分 (使用 np.trapezoid 替代 np.trapz)
+    V = np.trapezoid(dV, phi, axis=2)
 
     print("电势计算完成.")
     # 6. 返回计算得到的电势 V 和对应的 y_grid, z_grid (取一个切片)
@@ -121,7 +120,7 @@ def plot_potential_and_field(y_coords, z_coords, V, Ey, Ez, y_grid, z_grid):
     E_magnitude = np.sqrt(Ey ** 2 + Ez ** 2)
     #    - 使用 plt.streamplot 绘制电场线，传入 y_grid, z_grid, Ey, Ez
     #      可以设置 color, cmap, linewidth, density, arrowstyle 等参数
-    stream_plot = plt.streamplot(y_grid, z_grid, Ey, Ez, color=E_magnitude, cmap='plasma', density=1.5, arrowstyle='->')
+    stream_plot = plt.streamplot(y_coords, z_coords, Ey, Ez, color=E_magnitude, cmap='plasma', density=1.5, arrowstyle='->')
     #    - 设置坐标轴标签和标题
     plt.xlabel('y / a')
     plt.ylabel('z / a')
