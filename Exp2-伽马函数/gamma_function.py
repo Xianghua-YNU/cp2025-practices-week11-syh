@@ -69,6 +69,10 @@ def plot_integrands():
     plt.grid(True)
     plt.ylim(bottom=0)
     plt.xlim(left=0)
+    # 保存图像
+    plt.savefig("gamma_integrand.png")
+    # 显示图像
+    plt.show()
 
 
 # --- Task 2 & 3: 解析推导 (在注释或报告中完成) ---
