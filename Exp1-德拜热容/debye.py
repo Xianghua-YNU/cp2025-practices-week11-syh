@@ -9,22 +9,24 @@ V = 1000e-6  # 体积，1000立方厘米转换为立方米
 rho = 6.022e28  # 原子数密度，单位：m^-3
 theta_D = 428  # 德拜温度，单位：K
 
+
 def integrand(x):
     """被积函数：x^4 * e^x / (e^x - 1)^2
-    
+
     参数：
     x : float 或 numpy.ndarray
         积分变量
-    
+
     返回：
     float 或 numpy.ndarray：被积函数的值
     """
-    # 在这里实现被积函数
-    pass
+    exp_x = np.exp(x)
+    return (x ** 4 * exp_x) / ((exp_x - 1) ** 2)
+
 
 def gauss_quadrature(f, a, b, n):
     """实现高斯-勒让德积分
-    
+
     参数：
     f : callable
         被积函数
@@ -32,30 +34,40 @@ def gauss_quadrature(f, a, b, n):
         积分区间的端点
     n : int
         高斯点的数量
-    
+
     返回：
     float：积分结果
     """
-    # 在这里实现高斯积分
-    pass
+    x, w = np.polynomial.legendre.leggauss(n)
+    y = 0.5 * (b - a) * x + 0.5 * (b + a)
+    return 0.5 * (b - a) * np.sum(w * f(y))
+
 
 def cv(T):
     """计算给定温度T下的热容
-    
+
     参数：
     T : float
         温度，单位：K
-    
+
     返回：
     float：热容值，单位：J/K
     """
-    # 在这里实现热容计算
-    pass
+    integral = gauss_quadrature(integrand, 0, theta_D / T, 50)
+    return 9 * V * rho * kB * (T / theta_D) ** 3 * integral
+
 
 def plot_cv():
     """绘制热容随温度的变化曲线"""
-    # 在这里实现绘图功能
-    pass
+    temperatures = np.linspace(5, 500, 500)
+    heat_capacities = [cv(T) for T in temperatures]
+    plt.plot(temperatures, heat_capacities)
+    plt.xlabel('温度 (K)')
+    plt.ylabel('热容 (J/K)')
+    plt.title('热容随温度的变化曲线')
+    plt.grid(True)
+    plt.show()
+
 
 def test_cv():
     """测试热容计算函数"""
@@ -69,12 +81,14 @@ def test_cv():
         result = cv(T)
         print(f"{T:8.1f}\t{result:10.3e}")
 
+
 def main():
     # 运行测试
     test_cv()
-    
+
     # 绘制热容曲线
     plot_cv()
+
 
 if __name__ == '__main__':
     main()
