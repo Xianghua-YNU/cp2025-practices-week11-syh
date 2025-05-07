@@ -2,6 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import dblquad
 
+# 设置字体为黑体
+plt.rcParams['font.family'] = 'SimHei'
+
 # 物理常数
 G = 6.67430e-11  # 万有引力常数 (单位: m^3 kg^-1 s^-2)
 particle_mass = 1  # 测试质点的质量 (kg)
