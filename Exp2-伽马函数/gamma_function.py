@@ -53,8 +53,9 @@ def plot_integrands():
     print("绘制被积函数图像...")
     for a_val in [2, 3, 4]:
         print(f"  计算 a = {a_val}...")
-        y_vals = [integrand_gamma(x, a_val) for x in x_vals]
-        plt.plot(x_vals, y_vals, label=f'$a = {a_val}$')
+        y_vals = np.array([integrand_gamma(x, a_val) for x in x_vals])
+        valid_indices = np.isfinite(y_vals)
+        plt.plot(x_vals[valid_indices], y_vals[valid_indices], label=f'$a = {a_val}$')
 
         peak_x = a_val - 1
         if peak_x > 0:
@@ -106,24 +107,23 @@ def transformed_integrand_gamma(z, a):
     """
     c = a - 1.0
     if c <= 0:
-        if a <= 1:
-            print(f"警告: transformed_integrand_gamma 假定 a > 1，但接收到 a={a}")
-            return np.nan
+        return 0.0
 
     if z < 0 or z > 1:
         return 0.0
     if z == 1:
         return 0.0
+    if z == 0:
+        return integrand_gamma(0, a) * c
 
     x = c * z / (1 - z)
-    dxdz = c / (1 - z) ** 2
+    dxdz = c / ((1 - z) ** 2)
     val_f = integrand_gamma(x, a)
-    result = val_f * dxdz
 
-    if not np.isfinite(result):
+    if not np.isfinite(val_f) or not np.isfinite(dxdz):
         return 0.0
 
-    return result
+    return val_f * dxdz
 
 
 def gamma_function(a):
@@ -143,17 +143,16 @@ def gamma_function(a):
         - 使用导入的数值积分函数 (例如 `quad`)。
     """
     if a <= 0:
-        print(f"错误: Gamma(a) 对 a={a} <= 0 无定义。")
+        print(f"警告: Gamma(a) 对 a={a} <= 0 无定义 (或为复数)。")
         return np.nan
 
     try:
         if a > 1.0:
-            integral_value, error = quad(transformed_integrand_gamma, 0, 1, args=(a,))
+            result, error = quad(transformed_integrand_gamma, 0, 1, args=(a,))
         else:
-            integral_value, error = quad(integrand_gamma, 0, np.inf, args=(a,))
+            result, error = quad(integrand_gamma, 0, np.inf, args=(a,))
 
-        # print(f"Integration error estimate for a={a}: {error}")
-        return integral_value
+        return result
 
     except Exception as e:
         print(f"计算 Gamma({a}) 时发生错误: {e}")
@@ -161,36 +160,36 @@ def gamma_function(a):
 
 
 # --- 主程序 ---
-if __name__ == "__main__":
-    # --- Task 1 ---
-    print("--- Task 1: 绘制被积函数 ---")
+def test_gamma():
+    """测试伽马函数的计算结果"""
+    # 测试Γ(3/2)
+    a_test = 1.5
+    result = gamma_function(a_test)
+    expected = np.sqrt(np.pi) / 2
+    relative_error = abs(result - expected) / expected if expected != 0 else 0
+    print(f"Γ({a_test}) = {result:.8f} (精确值: {expected:.8f}, 相对误差: {relative_error:.2e})")
+
+    # 测试整数值
+    test_values = [3, 6, 10]
+    print("\n测试整数值：")
+    print("-" * 60)
+    print("a\t计算值 Γ(a)\t精确值 (a-1)!\t相对误差")
+    print("-" * 60)
+    for a in test_values:
+        result = gamma_function(a)
+        factorial_val = float(factorial(a - 1))
+        relative_error = abs(result - factorial_val) / factorial_val if factorial_val != 0 else 0
+        print(f"{a}\t{result:<12.6e}\t{factorial_val:<12.0f}\t{relative_error:.2e}")
+    print("-" * 60)
+
+
+def main():
+    # 绘制原始被积函数
     plot_integrands()
 
-    # --- Task 2 & 3 ---
-    print("\n--- Task 2 & 3: 解析推导见代码注释/报告 ---")
+    # 运行测试
+    test_gamma()
 
-    # --- Task 4 ---
-    print("\n--- Task 4: 测试 Gamma(1.5) ---")
-    a_test = 1.5
-    gamma_calc = gamma_function(a_test)
-    gamma_exact = 0.5 * sqrt(pi)
-    print(f"计算值 Gamma({a_test}) = {gamma_calc:.8f}")
-    print(f"精确值 sqrt(pi)/2 = {gamma_exact:.8f}")
-    if gamma_exact != 0:
-        relative_error = abs(gamma_calc - gamma_exact) / abs(gamma_exact)
-        print(f"相对误差 = {relative_error:.4e}")
 
-    # --- Task 5 ---
-    print("\n--- Task 5: 测试整数 Gamma(a) = (a-1)! ---")
-    for a_int in [3, 6, 10]:
-        print(f"\n计算 Gamma({a_int}):")
-        gamma_int_calc = gamma_function(a_int)
-        exact_factorial = float(factorial(a_int - 1))
-        print(f"  计算值 = {gamma_int_calc:.8f}")
-        print(f"  精确值 ({a_int - 1}!) = {exact_factorial:.8f}")
-        if exact_factorial != 0:
-            relative_error_int = abs(gamma_int_calc - exact_factorial) / abs(exact_factorial)
-            print(f"  相对误差 = {relative_error_int:.4e}")
-
-    # --- 显示图像 ---
-    plt.show()
+if __name__ == "__main__":
+    main()
